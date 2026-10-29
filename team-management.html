@@ -34,46 +34,108 @@
 
  <!-- Team Management -->
 <section id="team-management">
-  <!-- Legend -->
-  <div class="legend">
-    <div class="legend-item teamA">
-      <span class="badge"></span> Team A
-    </div>
-    <div class="legend-item teamB">
-      <span class="badge"></span> Team B
-    </div>
-  </div>
-    
-  <h2>Available Players</h2>
-  <ul id="availablePlayers"></ul>
 
-  <div class="teams">
-    <div>
-      <h3>Team A</h3>
-      <ul id="teamA"></ul>
+    <!-- Legend -->
+    <div class="legend">
+        <div class="legend-item teamA">
+            <span class="badge"></span>
+            Team A
+        </div>
+
+        <div class="legend-item teamB">
+            <span class="badge"></span>
+            Team B
+        </div>
     </div>
-    <div>
-      <h3>Team B</h3>
-      <ul id="teamB"></ul>
+
+    <!-- Add Player -->
+    <div class="add-player" id="addPlayerBar">
+        <input
+            type="text"
+            id="playerName"
+            placeholder="Enter player name"
+        >
+        <button id="addPlayer">
+            Add Player
+        </button>
     </div>
-  </div>
 
-  <!-- Sticky footer bar buttons -->
-  <div class="buttons">
-    <button id="saveTeams">Save Teams</button>
-    <button id="clearTeams">Clear Teams</button>
-    <button id="downloadTeams">Download Teams</button>
-    <button id="backToTop">Back to Top</button>
-  </div>
+    <!-- Mobile Toggle -->
+    <button
+        class="toggle-add-player"
+        id="toggleAddPlayer"
+    >
+        +
+    </button>
 
-  <!-- Floating Add Player bar -->
-  <div class="add-player" id="addPlayerBar">
-    <input type="text" id="playerName" placeholder="Enter player name">
-    <button id="addPlayer">Add Player</button>
-  </div>
+    <!-- Search -->
+    <input
+        type="text"
+        id="playerSearch"
+        placeholder="🔍 Search players..."
+    >
 
-  <!-- Toggle button for mobile -->
-  <button class="toggle-add-player" id="toggleAddPlayer">+</button>
+    <h2>Available Players</h2>
+
+    <ul id="availablePlayers"></ul>
+
+    <!-- Team Balance -->
+    <div id="teamBalance" class="team-balance">
+        ✅ Teams are balanced
+    </div>
+
+    <!-- Teams -->
+    <div class="teams">
+
+        <div class="team-card">
+
+            <h3>
+                🔴 Team A
+                (<span id="teamACount">0</span>)
+            </h3>
+
+            <ul id="teamA"></ul>
+
+        </div>
+
+        <div class="team-card">
+
+            <h3>
+                🟡 Team B
+                (<span id="teamBCount">0</span>)
+            </h3>
+
+            <ul id="teamB"></ul>
+
+        </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="buttons">
+
+        <button id="randomTeams">
+            Random Teams
+        </button>
+
+        <button id="saveTeams">
+            Save Teams
+        </button>
+
+        <button id="clearTeams">
+            Clear Teams
+        </button>
+
+        <button id="downloadTeams">
+            Download Teams
+        </button>
+
+        <button id="backToTop">
+            Top
+        </button>
+
+    </div>
+
 </section>
 
   <!-- Footer -->
@@ -81,213 +143,617 @@
     <p>&copy; 2026 Redfall FC | Community, Pride, Passion</p>
   </footer>
 
-<!-- Scripts -->
 <script>
-  // Mobile menu toggle
-  const hamburger = document.querySelector('.hamburger');
-  const navLinks = document.querySelector('.nav-links');
-  hamburger.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-  });
 
-  // Section fade-in animation
-  const sections = document.querySelectorAll("section");
-  const revealOnScroll = () => {
-    sections.forEach(sec => {
-      const rect = sec.getBoundingClientRect();
-      if (rect.top < window.innerHeight - 100) {
-        sec.classList.add("visible");
-      }
+// =========================
+// TEAM COUNTS & BALANCE
+// =========================
+
+function updateCounts() {
+
+    const teamA = document.querySelectorAll("#teamA li").length;
+    const teamB = document.querySelectorAll("#teamB li").length;
+
+    const teamACount = document.getElementById("teamACount");
+    const teamBCount = document.getElementById("teamBCount");
+    const balance = document.getElementById("teamBalance");
+
+    if (teamACount) teamACount.textContent = teamA;
+    if (teamBCount) teamBCount.textContent = teamB;
+
+    if (balance) {
+
+        if (teamA === teamB) {
+
+            balance.textContent = "✅ Teams are balanced";
+            balance.style.background = "#16a34a";
+
+        } else {
+
+            const diff = Math.abs(teamA - teamB);
+
+            balance.textContent =
+                `⚠ Difference of ${diff} player${diff > 1 ? "s" : ""}`;
+
+            balance.style.background = "#dc2626";
+        }
+    }
+}
+
+// =========================
+// MOBILE MENU
+// =========================
+
+const hamburger = document.querySelector(".hamburger");
+const navLinks = document.querySelector(".nav-links");
+
+if (hamburger) {
+    hamburger.addEventListener("click", () => {
+        navLinks.classList.toggle("active");
     });
-  };
-  window.addEventListener("scroll", revealOnScroll);
-  revealOnScroll();
+}
 
-  // Drag-and-drop helper with ghost element
-  const makeDraggable = (li, id) => {
+// =========================
+// FADE IN EFFECT
+// =========================
+
+const sections = document.querySelectorAll("section");
+
+function revealOnScroll() {
+
+    sections.forEach(section => {
+
+        const rect = section.getBoundingClientRect();
+
+        if (rect.top < window.innerHeight - 100) {
+            section.classList.add("visible");
+        }
+
+    });
+
+}
+
+window.addEventListener("scroll", revealOnScroll);
+revealOnScroll();
+
+// =========================
+// DRAGGABLE PLAYERS
+// =========================
+
+function makeDraggable(li, id) {
+
     li.id = id;
     li.draggable = true;
 
-    // Add drag handle
-    const handle = document.createElement('span');
-    handle.classList.add('drag-handle');
-    handle.textContent = '☰';
+    const handle = document.createElement("span");
+    handle.classList.add("drag-handle");
+    handle.textContent = "☰";
+
     li.prepend(handle);
 
-    // --- Desktop drag ---
-    li.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/plain', li.id);
-      li.classList.add('dragging');
-    });
-    li.addEventListener('dragend', () => {
-      li.classList.remove('dragging');
+    // Desktop drag
+
+    li.addEventListener("dragstart", e => {
+
+        e.dataTransfer.setData("text/plain", li.id);
+        li.classList.add("dragging");
+
     });
 
-    // --- Mobile touch support with ghost element ---
+    li.addEventListener("dragend", () => {
+
+        li.classList.remove("dragging");
+        updateCounts();
+
+    });
+
+    // Mobile drag
+
     let draggedItem = null;
     let ghost = null;
 
-    handle.addEventListener('touchstart', (e) => {
-      draggedItem = li;
-      draggedItem.classList.add('dragging');
-      e.preventDefault();
+    handle.addEventListener("touchstart", e => {
 
-      // Create ghost element
-      ghost = li.cloneNode(true);
-      ghost.style.position = 'fixed';
-      ghost.style.pointerEvents = 'none';
-      ghost.style.opacity = '0.8';
-      ghost.style.zIndex = '9999';
-      ghost.style.width = li.offsetWidth + 'px';
-      ghost.style.transition = 'transform 0.15s ease';
-      document.body.appendChild(ghost);
+        draggedItem = li;
+        draggedItem.classList.add("dragging");
+
+        e.preventDefault();
+
+        ghost = li.cloneNode(true);
+
+        ghost.style.position = "fixed";
+        ghost.style.pointerEvents = "none";
+        ghost.style.opacity = "0.8";
+        ghost.style.zIndex = "9999";
+        ghost.style.width = li.offsetWidth + "px";
+
+        document.body.appendChild(ghost);
+
     });
 
-    handle.addEventListener('touchmove', (e) => {
-      if (!ghost) return;
-      const touch = e.touches[0];
-      ghost.style.left = touch.clientX - ghost.offsetWidth / 2 + 'px';
-      ghost.style.top = touch.clientY - ghost.offsetHeight / 2 + 'px';
+    handle.addEventListener("touchmove", e => {
 
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      document.querySelectorAll('.teams ul').forEach(zone => {
-        zone.classList.remove('drag-over');
-        if (zone.contains(target) || zone === target) {
-          zone.classList.add('drag-over');
+        if (!ghost) return;
+
+        const touch = e.touches[0];
+
+        ghost.style.left =
+            touch.clientX - ghost.offsetWidth / 2 + "px";
+
+        ghost.style.top =
+            touch.clientY - ghost.offsetHeight / 2 + "px";
+
+    });
+
+    handle.addEventListener("touchend", e => {
+
+        const touch = e.changedTouches[0];
+
+        const target =
+            document.elementFromPoint(
+                touch.clientX,
+                touch.clientY
+            );
+
+        if (
+            target &&
+            target.tagName === "UL"
+        ) {
+
+            target.appendChild(draggedItem);
+
         }
-      });
+
+        if (draggedItem) {
+            draggedItem.classList.remove("dragging");
+        }
+
+        if (ghost) {
+            ghost.remove();
+        }
+
+        updateCounts();
+
     });
 
-    handle.addEventListener('touchend', (e) => {
-      const touch = e.changedTouches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+}
 
-      if (target && target.tagName === 'UL' && target.closest('.teams')) {
-        target.appendChild(draggedItem);
-      }
-      if (draggedItem) draggedItem.classList.remove('dragging');
-      draggedItem = null;
+// =========================
+// DROP ZONES
+// =========================
 
-      document.querySelectorAll('.teams ul').forEach(zone => zone.classList.remove('drag-over'));
+const lists =
+document.querySelectorAll(
+"#availablePlayers, #teamA, #teamB"
+);
 
-      if (ghost) {
-        ghost.remove();
-        ghost = null;
-      }
+lists.forEach(list => {
+
+    list.addEventListener("dragover", e => {
+
+        e.preventDefault();
+        list.classList.add("drag-over");
+
     });
-  };
 
-  // Drop zone events
-  const lists = document.querySelectorAll('#availablePlayers, #teamA, #teamB');
-  lists.forEach(list => {
-    list.addEventListener('dragover', e => {
-      e.preventDefault();
-      list.classList.add('drag-over');
-    });
-    list.addEventListener('dragleave', () => list.classList.remove('drag-over'));
-    list.addEventListener('drop', e => {
-      e.preventDefault();
-      const id = e.dataTransfer.getData('text/plain');
-      const dragged = document.getElementById(id);
-      if (dragged) list.appendChild(dragged);
-      list.classList.remove('drag-over');
-    });
-  });
+    list.addEventListener("dragleave", () => {
 
-  // Add player manually
-  document.getElementById('addPlayer').addEventListener('click', () => {
-    const name = document.getElementById('playerName').value.trim();
+        list.classList.remove("drag-over");
+
+    });
+
+    list.addEventListener("drop", e => {
+
+        e.preventDefault();
+
+        const id =
+            e.dataTransfer.getData("text/plain");
+
+        const dragged =
+            document.getElementById(id);
+
+        if (dragged) {
+
+            list.appendChild(dragged);
+            updateCounts();
+
+        }
+
+        list.classList.remove("drag-over");
+
+    });
+
+});
+
+// =========================
+// ADD PLAYER
+// =========================
+
+document
+.getElementById("addPlayer")
+.addEventListener("click", () => {
+
+    const input =
+        document.getElementById("playerName");
+
+    const name =
+        input.value.trim();
+
     if (!name) return;
 
-    const li = document.createElement('li');
+    const li =
+        document.createElement("li");
+
     li.textContent = name;
-    li.style.fontSize = "0.9rem";
-    li.style.padding = "10px";
 
-    makeDraggable(li, 'player-' + Date.now());
-    document.getElementById('availablePlayers').appendChild(li);
-    document.getElementById('playerName').value = '';
-  });
+    makeDraggable(
+        li,
+        "player-" + Date.now()
+    );
 
-  // Save teams
-  document.getElementById('saveTeams').addEventListener('click', () => {
-    const teamA = [...document.querySelectorAll('#teamA li')].map(li => li.textContent);
-    const teamB = [...document.querySelectorAll('#teamB li')].map(li => li.textContent);
-    const available = [...document.querySelectorAll('#availablePlayers li')].map(li => li.textContent);
+    document
+    .getElementById("availablePlayers")
+    .appendChild(li);
 
-    localStorage.setItem('teamA', JSON.stringify(teamA));
-    localStorage.setItem('teamB', JSON.stringify(teamB));
-    localStorage.setItem('availablePlayers', JSON.stringify(available));
+    input.value = "";
 
-    alert('Teams saved!');
-  });
+    updateCounts();
 
-  // Load teams
-  window.addEventListener('load', () => {
-    const teamA = JSON.parse(localStorage.getItem('teamA')) || [];
-    const teamB = JSON.parse(localStorage.getItem('teamB')) || [];
-    const available = JSON.parse(localStorage.getItem('availablePlayers')) || [];
+});
 
-    const rebuildList = (list, items, prefix) => {
-      list.innerHTML = '';
-      items.forEach((player, i) => {
-        const li = document.createElement('li');
-        li.textContent = player;
-        makeDraggable(li, prefix + '-' + i);
-        list.appendChild(li);
-      });
-    };
+// =========================
+// SEARCH PLAYERS
+// =========================
 
-    rebuildList(document.getElementById('teamA'), teamA, 'teamA');
-    rebuildList(document.getElementById('teamB'), teamB, 'teamB');
-    rebuildList(document.getElementById('availablePlayers'), available, 'available');
-  });
+const playerSearch =
+document.getElementById("playerSearch");
 
-  // Clear teams
-  document.getElementById('clearTeams').addEventListener('click', () => {
-    localStorage.removeItem('teamA');
-    localStorage.removeItem('teamB');
-    localStorage.removeItem('availablePlayers');
-    document.getElementById('teamA').innerHTML = '';
-    document.getElementById('teamB').innerHTML = '';
-    document.getElementById('availablePlayers').innerHTML = '';
-    alert('Teams cleared!');
-  });
+if (playerSearch) {
 
-  // Download teams
-  document.getElementById('downloadTeams').addEventListener('click', () => {
-    const teamA = [...document.querySelectorAll('#teamA li')].map(li => li.textContent);
-    const teamB = [...document.querySelectorAll('#teamB li')].map(li => li.textContent);
+    playerSearch.addEventListener(
+        "input",
+        function () {
 
-    let content = "Redfall FC Matchday Teams\n\n";
-    content += "Team A:\n" + (teamA.length ? teamA.join("\n") : "No players selected") + "\n\n";
-    content += "Team B:\n" + (teamB.length ? teamB.join("\n") : "No players selected") + "\n";
+            const value =
+            this.value.toLowerCase();
 
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
+            document
+            .querySelectorAll(
+                "#availablePlayers li"
+            )
+            .forEach(player => {
 
-    const a = document.createElement("a");
+                player.style.display =
+                    player.textContent
+                    .toLowerCase()
+                    .includes(value)
+                        ? ""
+                        : "none";
+
+            });
+
+        }
+    );
+
+}
+
+// =========================
+// RANDOM TEAMS
+// =========================
+
+const randomBtn =
+document.getElementById("randomTeams");
+
+if (randomBtn) {
+
+    randomBtn.addEventListener(
+        "click",
+        () => {
+
+            const players = [
+
+                ...document.querySelectorAll(
+                    "#availablePlayers li"
+                ),
+
+                ...document.querySelectorAll(
+                    "#teamA li"
+                ),
+
+                ...document.querySelectorAll(
+                    "#teamB li"
+                )
+
+            ];
+
+            players.sort(
+                () => Math.random() - 0.5
+            );
+
+            document.getElementById(
+                "teamA"
+            ).innerHTML = "";
+
+            document.getElementById(
+                "teamB"
+            ).innerHTML = "";
+
+            players.forEach(
+                (player, index) => {
+
+                    if (
+                        index % 2 === 0
+                    ) {
+
+                        document
+                        .getElementById(
+                            "teamA"
+                        )
+                        .appendChild(player);
+
+                    } else {
+
+                        document
+                        .getElementById(
+                            "teamB"
+                        )
+                        .appendChild(player);
+
+                    }
+
+                }
+            );
+
+            updateCounts();
+
+        }
+    );
+
+}
+
+// =========================
+// SAVE TEAMS
+// =========================
+
+document
+.getElementById("saveTeams")
+.addEventListener("click", () => {
+
+    const teamA =
+        [...document.querySelectorAll("#teamA li")]
+        .map(li => li.textContent);
+
+    const teamB =
+        [...document.querySelectorAll("#teamB li")]
+        .map(li => li.textContent);
+
+    const available =
+        [...document.querySelectorAll("#availablePlayers li")]
+        .map(li => li.textContent);
+
+    localStorage.setItem(
+        "teamA",
+        JSON.stringify(teamA)
+    );
+
+    localStorage.setItem(
+        "teamB",
+        JSON.stringify(teamB)
+    );
+
+    localStorage.setItem(
+        "availablePlayers",
+        JSON.stringify(available)
+    );
+
+    alert("Teams saved!");
+
+});
+
+// =========================
+// LOAD TEAMS
+// =========================
+
+window.addEventListener("load", () => {
+
+    const teamA =
+        JSON.parse(
+            localStorage.getItem("teamA")
+        ) || [];
+
+    const teamB =
+        JSON.parse(
+            localStorage.getItem("teamB")
+        ) || [];
+
+    const available =
+        JSON.parse(
+            localStorage.getItem("availablePlayers")
+        ) || [];
+
+    function rebuildList(
+        list,
+        items,
+        prefix
+    ) {
+
+        list.innerHTML = "";
+
+        items.forEach(
+            (player, index) => {
+
+                const li =
+                document.createElement("li");
+
+                li.textContent =
+                player;
+
+                makeDraggable(
+                    li,
+                    prefix + "-" + index
+                );
+
+                list.appendChild(li);
+
+            }
+        );
+
+    }
+
+    rebuildList(
+        document.getElementById("teamA"),
+        teamA,
+        "teamA"
+    );
+
+    rebuildList(
+        document.getElementById("teamB"),
+        teamB,
+        "teamB"
+    );
+
+    rebuildList(
+        document.getElementById("availablePlayers"),
+        available,
+        "available"
+    );
+
+    updateCounts();
+
+});
+
+// =========================
+// CLEAR TEAMS
+// =========================
+
+document
+.getElementById("clearTeams")
+.addEventListener("click", () => {
+
+    localStorage.clear();
+
+    document.getElementById(
+        "teamA"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "teamB"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "availablePlayers"
+    ).innerHTML = "";
+
+    updateCounts();
+
+    alert("Teams cleared!");
+
+});
+
+// =========================
+// DOWNLOAD TEAMS
+// =========================
+
+document
+.getElementById("downloadTeams")
+.addEventListener("click", () => {
+
+    const teamA =
+        [...document.querySelectorAll("#teamA li")]
+        .map(li => li.textContent);
+
+    const teamB =
+        [...document.querySelectorAll("#teamB li")]
+        .map(li => li.textContent);
+
+    let content =
+        "Redfall FC Matchday Teams\n\n";
+
+    content +=
+        "TEAM A\n\n" +
+        teamA.join("\n") +
+        "\n\n";
+
+    content +=
+        "TEAM B\n\n" +
+        teamB.join("\n");
+
+    const blob =
+        new Blob(
+            [content],
+            {
+                type: "text/plain"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
     a.href = url;
-    a.download = "RedfallFC_Teams.txt";
+    a.download =
+        "RedfallFC_Teams.txt";
+
     a.click();
 
     URL.revokeObjectURL(url);
-  });
 
-  // Back to Top button
-  document.getElementById('backToTop').addEventListener('click', () => {
-    document.getElementById('team-management').scrollIntoView({ behavior: 'smooth' });
-  });
+});
 
-  // Toggle Add Player bar (mobile)
-  const toggleBtn = document.getElementById('toggleAddPlayer');
-  const addPlayerBar = document.getElementById('addPlayerBar');
-  if (toggleBtn && addPlayerBar) {
-    toggleBtn.addEventListener('click', () => {
-      addPlayerBar.classList.toggle('active');
-      toggleBtn.textContent = addPlayerBar.classList.contains('active') ? '×' : '+';
+// =========================
+// BACK TO TOP
+// =========================
+
+document
+.getElementById("backToTop")
+.addEventListener("click", () => {
+
+    document
+    .getElementById("team-management")
+    .scrollIntoView({
+        behavior: "smooth"
     });
-  }
+
+});
+
+// =========================
+// MOBILE PLAYER BAR
+// =========================
+
+const toggleBtn =
+document.getElementById(
+    "toggleAddPlayer"
+);
+
+const addPlayerBar =
+document.getElementById(
+    "addPlayerBar"
+);
+
+if (toggleBtn && addPlayerBar) {
+
+    toggleBtn.addEventListener(
+        "click",
+        () => {
+
+            addPlayerBar
+            .classList
+            .toggle("active");
+
+            toggleBtn.textContent =
+                addPlayerBar.classList.contains("active")
+                ? "×"
+                : "+";
+
+        }
+    );
+
+}
+
+updateCounts();
+
 </script>
 </body>
 </html>
